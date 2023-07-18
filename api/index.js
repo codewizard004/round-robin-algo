@@ -36,6 +36,7 @@ const teams = {
 
 // Initialize counters for each team
 const teamCounters = {};
+const assignedTasks = {};
 
 // Assign tasks to team members in round-robin manner
 function assignTaskToTeam(reqTeams, task) {
@@ -45,21 +46,13 @@ function assignTaskToTeam(reqTeams, task) {
             filteredTeams[teamName] = teams[teamName];
         }
     });
-    const allMembers = Object.values(filteredTeams).flat();
-    const sortedMembers = allMembers.sort((a, b) => a.priority - b.priority);
 
-    const assignedTasks = {};
-    const teamIndexes = {};
-
-    Object.keys(filteredTeams).forEach(team => {
-        teamIndexes[team] = 0;
-    });
-
-    for (let i = 0; i < sortedMembers.length; i++) {
-        const member = sortedMembers[i];
-        const teamName = Object.keys(filteredTeams).find(team => filteredTeams[team].includes(member));
-        const team = filteredTeams[teamName];
-        const teamIndex = teamIndexes[teamName];
+    for (let i = 0; i < reqTeams.length; i++) {
+        const teamName = reqTeams[i];
+        const teamMembers = filteredTeams[teamName];
+        const sortedMembers = teamMembers.sort((a, b) => a.priority - b.priority);
+        const teamIndex = teamCounters[teamName] || 0;
+        const member = sortedMembers[teamIndex];
 
         if (!assignedTasks[member.name]) {
             assignedTasks[member.name] = [];
@@ -69,8 +62,9 @@ function assignTaskToTeam(reqTeams, task) {
             task,
         });
 
-        teamIndexes[teamName] = (teamIndex + 1) % team.length;
+        teamCounters[teamName] = (teamIndex + 1) % teamMembers.length;
     }
+
     return assignedTasks;
 }
 
